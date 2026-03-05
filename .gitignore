@@ -52,3 +52,8 @@ terraform.tfstate*
 .env.local
 .env.*.local
 
+# AI Agent & Skills
+.agents/
+.agent/
+skills-lock.json
+
