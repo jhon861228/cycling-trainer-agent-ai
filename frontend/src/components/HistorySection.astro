@@ -1,0 +1,46 @@
+---
+
+---
+
+<section
+    class="glass-card section-history"
+    style="grid-column: span 12; border: none; background: transparent; padding: 0 40px 40px 40px;"
+>
+    <div
+        class="section-header"
+        style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;"
+    >
+        <h3 class="uppercase text-sm" style="color: var(--titanium)">
+            Historial de Planes
+        </h3>
+        <button id="toggleHistory" class="premium-button small"
+            >Ver historial</button
+        >
+    </div>
+    <div
+        id="historyList"
+        class="history-list hidden"
+        style="background: var(--surface-raised); border-radius: 0 0 12px 12px; padding: 1rem;"
+    >
+        <p style="color: var(--text-muted); text-align: center; padding: 1rem;">
+            No hay planes anteriores.
+        </p>
+    </div>
+</section>
+
+<style>
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0;
+    }
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .history-list.hidden {
+        display: none;
+    }
+</style>

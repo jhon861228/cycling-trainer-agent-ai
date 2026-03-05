@@ -1,0 +1,67 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+import "../styles/global.css";
+import Logo from "../components/Logo.astro";
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="AI Cycling Trainer" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} | Cycling Agent</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<header class="header-flex">
+			<Logo />
+			<button
+				id="navLogoutBtn"
+				class="premium-button small logout-btn-global"
+				style="background: var(--surface-raised); border: 1px solid var(--glass-border); box-shadow: none; display: none;"
+				>Salir</button
+			>
+			<div class="header-actions">
+				<slot name="header-actions" />
+				<a
+					href="/dashboard"
+					class="premium-button small"
+					style="background: transparent; border: 1px solid transparent; box-shadow: none;"
+					>Entrenamientos</a
+				>
+				<a
+					href="/profile"
+					class="premium-button small"
+					style="background: transparent; border: 1px solid transparent; box-shadow: none;"
+					>Perfil</a
+				>
+			</div>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<script>
+			const token = localStorage.getItem("token");
+			const logoutBtn = document.getElementById("navLogoutBtn");
+			if (token && logoutBtn) {
+				logoutBtn.style.display = "block";
+				logoutBtn.addEventListener("click", () => {
+					localStorage.removeItem("token");
+					window.location.href = "/login";
+				});
+			}
+		</script>
+	</body>
+</html>

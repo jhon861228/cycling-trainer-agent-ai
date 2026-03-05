@@ -1,0 +1,145 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GoalModal from "../components/GoalModal.astro";
+import WorkoutModal from "../components/WorkoutModal.astro";
+import HistorySection from "../components/HistorySection.astro";
+import HistoryModal from "../components/HistoryModal.astro";
+import Logo from "../components/Logo.astro";
+---
+
+<Layout title="Dashboard">
+    <button
+        slot="header-actions"
+        id="openGoalModal"
+        class="premium-button small">Nuevo Objetivo</button
+    >
+
+    <div id="loader" class="loader-overlay">
+        <span class="loader"></span>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Today's Focus Hero -->
+        <section id="todayHero" class="hero-focus hidden">
+            <div class="hero-content">
+                <span class="text-xs uppercase font-bold text-primary"
+                    >Próximo Entrenamiento</span
+                >
+                <h1
+                    id="heroTitle"
+                    class="premium-gradient"
+                    style="margin: 0.5rem 0 1.25rem 0; font-size: clamp(1.75rem, 5vw, 2.25rem); line-height: 1.2;"
+                >
+                    -
+                </h1>
+                <div
+                    class="hero-stats"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;"
+                >
+                    <div class="stat-item">
+                        <span class="text-xs uppercase text-muted"
+                            >Duración</span
+                        >
+                        <div
+                            id="heroDuration"
+                            class="text-mono font-bold"
+                            style="font-size: clamp(1.1rem, 3vw, 1.25rem);"
+                        >
+                            0 min
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="text-xs uppercase text-muted">Tipo</span>
+                        <div
+                            id="heroType"
+                            class="font-bold"
+                            style="font-size: 1.2rem; text-transform: capitalize;"
+                        >
+                            -
+                        </div>
+                    </div>
+                    <div
+                        class="stat-item"
+                        style="display: flex; align-items: flex-end;"
+                    >
+                        <button id="heroGoBtn" class="premium-button"
+                            >Detalles</button
+                        >
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="welcome-section" style="padding: 2rem 0;">
+            <h1
+                class="text-sm uppercase text-muted font-bold"
+                style="letter-spacing: 2px;"
+            >
+                Cuadro de Mando
+            </h1>
+            <p
+                id="welcomeMessage"
+                class="text-tertiary"
+                style="margin-top: 0.5rem;"
+            >
+                Cargando perfil...
+            </p>
+        </section>
+
+        <div class="grid">
+            <section
+                class="glass-card section-active-plan"
+                style="grid-column: span 12; padding: 1.5rem 1rem; border: none; background: transparent;"
+            >
+                <div class="section-header">
+                    <h3
+                        class="uppercase text-sm"
+                        style="color: var(--titanium)"
+                    >
+                        Plan Semanal
+                    </h3>
+                    <div
+                        id="activeGoalBadge1"
+                        class="active-goal-badge text-mono"
+                    >
+                        Sin objetivo definido
+                    </div>
+                </div>
+
+                <div id="timelineTrack" class="timeline-track">
+                    <!-- Dinámicamente llenado por DashboardController -->
+                    <p class="placeholder-text">
+                        No tienes un plan activo. ¡Define un nuevo objetivo
+                        arriba!
+                    </p>
+                </div>
+            </section>
+
+            <HistorySection />
+        </div>
+    </div>
+
+    <GoalModal />
+    <WorkoutModal />
+    <HistoryModal />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
+
+    <style is:global>
+        <style > .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+        }
+        .section-active-plan:hover {
+            transform: none !important;
+            box-shadow: none !important;
+            border-color: var(--glass-border) !important;
+        }
+    </style>
+
+    <script>
+        import { DashboardController } from "../logic/dashboardController";
+        new DashboardController();
+    </script>
+</Layout>

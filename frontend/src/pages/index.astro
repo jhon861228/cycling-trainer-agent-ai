@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Inicio">
+	<section class="hero animate-fade-in">
+		<h1 class="logo-large">
+			Cycling<span class="premium-gradient">AI</span>
+		</h1>
+		<p class="subtitle">
+			Tu entrenador personal impulsado por Google Gemini
+		</p>
+		<div class="cta">
+			<a href="/login" class="btn-primary">Empezar a Entrenar</a>
+		</div>
+	</section>
+
+	<style>
+		.hero {
+			height: 70vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+		}
+		.logo-large {
+			font-size: 5rem;
+			font-weight: 900;
+			letter-spacing: -2px;
+		}
+		.subtitle {
+			font-size: 1.5rem;
+			color: var(--text-muted);
+			margin-bottom: 2rem;
+		}
+	</style>
+</Layout>

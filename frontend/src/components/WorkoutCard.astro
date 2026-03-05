@@ -1,0 +1,29 @@
+---
+interface Props {
+    day: number;
+    name: string;
+    type: string;
+    duration_minutes: number;
+    isToday: boolean;
+    date: string;
+    onclick?: string;
+    zoneClass?: string;
+}
+
+const { day, name, type, duration_minutes, isToday, date, onclick, zoneClass } =
+    Astro.props;
+---
+
+<div class={`workout-card ${isToday ? "is-today" : ""}`} onclick={onclick}>
+    <div class={`zone-ribbon ${zoneClass}`}></div>
+    <div class="card-date text-xs uppercase text-muted font-bold">{date}</div>
+    <div class="card-name font-bold" style="font-size: 1.1rem; margin: 4px 0;">
+        {name}
+    </div>
+    <div class="card-meta text-mono text-sm" style="color: var(--titanium)">
+        {type === "rest" ? "Descanso" : `${duration_minutes} min`}
+    </div>
+    <div class={`type-badge type-${type}`} style="margin-top:auto;">
+        {type}
+    </div>
+</div>

@@ -1,0 +1,185 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Mi Perfil">
+    <div id="loader" class="loader-overlay">
+        <span class="loader"></span>
+    </div>
+
+    <div class="profile-container">
+        <!-- ... rest of HTML ... -->
+        <header class="animate-fade-in">
+            <h1>
+                Configuración de <span class="premium-gradient"
+                    >Rendimiento</span
+                >
+            </h1>
+            <p style="color: var(--text-muted);">
+                Mantén tus datos actualizados para mejores entrenamientos.
+            </p>
+        </header>
+
+        <div class="grid">
+            <!-- Edit Profile Form -->
+            <section
+                class="glass-card animate-fade-in"
+                style="grid-column: span 5;"
+            >
+                <h3>Tus Datos</h3>
+                <form id="profileForm" style="margin-top: 1.5rem;">
+                    <label>FTP (Vatios)</label>
+                    <input
+                        type="number"
+                        id="ftpInput"
+                        class="input-field"
+                        value="250"
+                    />
+
+                    <label>Peso (kg)</label>
+                    <input
+                        type="number"
+                        id="weightInput"
+                        class="input-field"
+                        value="75"
+                    />
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        style="width: 100%;">Actualizar Datos</button
+                    >
+                </form>
+            </section>
+
+            <!-- Performance History -->
+            <section
+                class="glass-card animate-fade-in"
+                style="grid-column: span 7;"
+            >
+                <h3>Historial de Progreso</h3>
+                <div class="history-list">
+                    <div class="history-item">
+                        <div>
+                            <strong>250 W</strong>
+                            <p
+                                style="font-size: 0.8rem; color: var(--text-muted);"
+                            >
+                                3 Mar, 2026
+                            </p>
+                        </div>
+                        <span class="trend up">▲ 2%</span>
+                    </div>
+                    <div class="history-item">
+                        <div>
+                            <strong>245 W</strong>
+                            <p
+                                style="font-size: 0.8rem; color: var(--text-muted);"
+                            >
+                                15 Feb, 2026
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            margin-top: 2rem;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .trend.up {
+            color: #4ade80;
+        }
+        .trend.down {
+            color: #f87171;
+        }
+    </style>
+
+    <script>
+        import { showToast } from "../utils/toast.js";
+
+        const API_BASE = import.meta.env.PUBLIC_API_BASE;
+        const profileForm = document.getElementById(
+            "profileForm",
+        ) as HTMLFormElement;
+        const ftpInput = document.getElementById(
+            "ftpInput",
+        ) as HTMLInputElement;
+        const weightInput = document.getElementById(
+            "weightInput",
+        ) as HTMLInputElement;
+        const loader = document.getElementById("loader");
+        const email = localStorage.getItem("userEmail");
+
+        // Session check
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "/login";
+
+        async function fetchProfile() {
+            loader?.classList.add("active");
+            try {
+                const res = await fetch(`${API_BASE}/profile?email=${email}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    ftpInput.value = data.ftp;
+                    weightInput.value = data.weight;
+                }
+            } catch (e) {
+                console.error("Error cargando perfil", e);
+            } finally {
+                loader?.classList.remove("active");
+            }
+        }
+
+        // Load data on start
+        fetchProfile();
+
+        profileForm?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            loader?.classList.add("active");
+
+            try {
+                const res = await fetch(`${API_BASE}/update-profile`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email,
+                        ftp: parseFloat(ftpInput.value),
+                        weight: parseFloat(weightInput.value),
+                    }),
+                });
+
+                if (res.ok) {
+                    showToast("Datos actualizados correctamente", "success");
+                    // Optionally redirect to dashboard to see changes
+                    window.location.href = "/dashboard";
+                } else {
+                    showToast("Error al actualizar datos", "error");
+                }
+            } catch (error) {
+                showToast("Error de conexión", "error");
+            } finally {
+                loader?.classList.remove("active");
+            }
+        });
+    </script>
+</Layout>

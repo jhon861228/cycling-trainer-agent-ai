@@ -1,0 +1,144 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Acceso Ciclista">
+    <div id="loader" class="loader-overlay">
+        <span class="loader"></span>
+    </div>
+
+    <div class="auth-container">
+        <div
+            class="glass-card animate-fade-in"
+            style="width: 100%; max-width: 400px;"
+        >
+            <h1 class="premium-gradient">Bienvenido</h1>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">
+                Entrena con inteligencia artificial
+            </p>
+
+            <form id="authForm">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    class="input-field"
+                    placeholder="atleta@pro.com"
+                    required
+                />
+
+                <label>Contraseña</label>
+                <input
+                    type="password"
+                    id="password"
+                    class="input-field"
+                    required
+                />
+
+                <div class="actions">
+                    <button
+                        type="button"
+                        id="loginBtn"
+                        class="btn-primary"
+                        style="flex: 1;">Login</button
+                    >
+                    <button
+                        type="button"
+                        id="registerBtn"
+                        style="background: transparent; border: 1px solid var(--primary); color: var(--primary); flex: 1;"
+                        class="btn-primary">Registro</button
+                    >
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .auth-container {
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+    </style>
+
+    <script>
+        import { showToast } from "../utils/toast.js";
+
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const emailInput = document.getElementById("email") as HTMLInputElement;
+        const passwordInput = document.getElementById(
+            "password",
+        ) as HTMLInputElement;
+        const loader = document.getElementById("loader");
+
+        const API_BASE = import.meta.env.PUBLIC_API_BASE;
+
+        loginBtn?.addEventListener("click", async () => {
+            loader?.classList.add("active");
+            try {
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: emailInput.value,
+                        password: passwordInput.value,
+                    }),
+                });
+                if (res.ok) {
+                    const { token } = await res.json();
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("userEmail", emailInput.value);
+                    showToast("¡Bienvenido atleta!", "success");
+                    setTimeout(
+                        () => (window.location.href = "/dashboard"),
+                        1000,
+                    );
+                } else {
+                    showToast("Credenciales inválidas", "error");
+                }
+            } catch (e) {
+                showToast("Error de conexión", "error");
+            } finally {
+                loader?.classList.remove("active");
+            }
+        });
+
+        registerBtn?.addEventListener("click", async () => {
+            loader?.classList.add("active");
+            try {
+                const res = await fetch(`${API_BASE}/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: emailInput.value,
+                        password: passwordInput.value,
+                    }),
+                });
+                if (res.ok) {
+                    showToast(
+                        "Registro exitoso! Ya puedes iniciar sesión",
+                        "success",
+                    );
+                } else {
+                    showToast("Error en el registro", "error");
+                }
+            } catch (error) {
+                showToast("Error al registrar", "error");
+            } finally {
+                loader?.classList.remove("active");
+            }
+        });
+    </script>
+</Layout>

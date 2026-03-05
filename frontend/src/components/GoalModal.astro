@@ -1,0 +1,168 @@
+---
+
+---
+
+<div id="goalModal" class="modal-overlay">
+    <div
+        class="modal-content glass-card animate-scale-in"
+        style="max-width: 600px;"
+    >
+        <header class="modal-header">
+            <h2>Nuevo Objetivo</h2>
+            <button id="closeGoalModal" class="close-btn">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="form-group">
+                <label>¿Cuál es tu objetivo?</label>
+                <textarea
+                    id="goalInput"
+                    class="input-field"
+                    placeholder="Ej: Mejorar mi tiempo en una subida de 10km..."
+                    rows="3"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Días del plan</label>
+                    <input
+                        type="number"
+                        id="daysInput"
+                        class="input-field"
+                        value="7"
+                        min="1"
+                        max="30"
+                    />
+                </div>
+            </div>
+
+            <div class="availability-section">
+                <label>Disponibilidad de tiempo (minutos por día)</label>
+                <div class="availability-grid">
+                    {
+                        [
+                            { day: "Monday", label: "LU" },
+                            { day: "Tuesday", label: "MA" },
+                            { day: "Wednesday", label: "MI" },
+                            { day: "Thursday", label: "JU" },
+                            { day: "Friday", label: "VI" },
+                            { day: "Saturday", label: "SA" },
+                            { day: "Sunday", label: "DO" },
+                        ].map((d) => (
+                            <div class="day-input">
+                                <span>{d.label}</span>
+                                <input
+                                    type="number"
+                                    data-day={d.day}
+                                    value={
+                                        d.day === "Saturday" ||
+                                        d.day === "Sunday"
+                                            ? "120"
+                                            : d.day === "Wednesday"
+                                              ? "90"
+                                              : "60"
+                                    }
+                                />
+                            </div>
+                        ))
+                    }
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button id="generateBtn" class="premium-button w-full"
+                    >Generar Plan Pro</button
+                >
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-content {
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        padding: 40px;
+        background: #141414;
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+    .close-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .w-full {
+        width: 100%;
+    }
+    .availability-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .day-input {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    .day-input span {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--text-muted);
+    }
+    .day-input input {
+        width: 100%;
+        text-align: center;
+        padding: 8px 0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.85rem;
+    }
+</style>

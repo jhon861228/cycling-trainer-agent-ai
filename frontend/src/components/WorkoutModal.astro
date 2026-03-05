@@ -1,0 +1,178 @@
+---
+
+---
+
+<div id="workoutModal" class="modal-overlay">
+    <div class="modal-content glass-card animate-scale-in">
+        <header class="modal-header">
+            <div>
+                <div id="modalDay" class="modal-day">DÍA 1</div>
+                <h2 id="modalTitle">Entrenamiento</h2>
+            </div>
+            <button id="closeModal" class="close-btn">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="graph-container">
+                <canvas id="workoutChart"></canvas>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <span class="label">DURACIÓN</span>
+                    <span id="modalDuration" class="value">0 min</span>
+                </div>
+                <div id="modalTypeBadge" class="type-badge">TIPO</div>
+            </div>
+
+            <div class="intervals-list-container">
+                <ul id="intervalsList" class="intervals-list"></ul>
+            </div>
+
+            <div class="modal-footer">
+                <a id="modalDownloadBtn" class="download-button" href="#">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                        ></path><polyline points="7 10 12 15 17 10"
+                        ></polyline><line x1="12" y1="15" x2="12" y2="3"
+                        ></line></svg
+                    >
+                    Descargar .ZWO
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-content {
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        padding: 40px;
+        background: #141414;
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+    .close-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-day {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    .graph-container {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 16px;
+        margin-bottom: 32px;
+        height: 300px;
+        padding: 10px;
+        border: 1px solid var(--glass-border);
+    }
+    .modal-day {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: 1px;
+    }
+    #modalTitle {
+        font-size: 2rem;
+        margin-top: 4px;
+    }
+    .graph-container {
+        background: var(--surface-inset);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        height: 280px;
+        padding: 1rem;
+        border: 1px solid var(--glass-border);
+    }
+    .intervals-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .intervals-list :global(li) {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .intervals-list :global(li:hover) {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    .modal-footer {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: flex-end;
+    }
+    .download-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        font-size: 0.9rem;
+    }
+    .download-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        filter: brightness(1.1);
+    }
+</style>
