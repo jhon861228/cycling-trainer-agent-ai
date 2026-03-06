@@ -8,134 +8,265 @@ import Layout from "../layouts/Layout.astro";
     </div>
 
     <div class="auth-container">
-        <div
-            class="glass-card animate-fade-in"
-            style="width: 100%; max-width: 400px;"
-        >
-            <h1 class="premium-gradient">Bienvenido</h1>
-            <p style="color: var(--text-muted); margin-bottom: 24px;">
-                Entrena con inteligencia artificial
-            </p>
+        <div class="glass-card auth-card animate-fade-in">
+            <div class="tabs-container">
+                <button type="button" class="tab-btn active" id="tabLogin"
+                    >LOGIN</button
+                >
+                <button type="button" class="tab-btn" id="tabRegister"
+                    >REGISTRO</button
+                >
+                <div class="tab-indicator" id="tabIndicator"></div>
+            </div>
 
-            <form id="authForm">
-                <label>Email</label>
-                <input
-                    type="email"
-                    id="email"
-                    class="input-field"
-                    placeholder="atleta@pro.com"
-                    required
-                />
+            <div class="auth-header">
+                <h1 class="premium-gradient" id="authTitle">Bienvenido</h1>
+                <p id="authSubtitle" style="color: var(--text-muted);">
+                    Entrena con inteligencia artificial
+                </p>
+            </div>
 
-                <label>Contraseña</label>
-                <input
-                    type="password"
-                    id="password"
-                    class="input-field"
-                    required
-                />
-
-                <div class="actions">
-                    <button
-                        type="button"
-                        id="loginBtn"
-                        class="btn-primary"
-                        style="flex: 1;">Login</button
-                    >
-                    <button
-                        type="button"
-                        id="registerBtn"
-                        style="background: transparent; border: 1px solid var(--primary); color: var(--primary); flex: 1;"
-                        class="btn-primary">Registro</button
-                    >
+            <form id="authForm" class="auth-form">
+                <div
+                    id="firstNameGroup"
+                    class="form-group"
+                    style="display: none;"
+                >
+                    <label class="input-label">NOMBRE</label>
+                    <input
+                        type="text"
+                        id="firstName"
+                        class="input-field"
+                        placeholder="Tu primer nombre"
+                    />
                 </div>
+
+                <div class="form-group">
+                    <label class="input-label">EMAIL</label>
+                    <input
+                        type="email"
+                        id="email"
+                        class="input-field"
+                        placeholder="atleta@pro.com"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label class="input-label">CONTRASEÑA</label>
+                    <input
+                        type="password"
+                        id="password"
+                        class="input-field"
+                        required
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    id="submitBtn"
+                    class="premium-button"
+                    style="width: 100%; margin-top: 12px;"
+                >
+                    INGRESAR AL BOX
+                </button>
             </form>
         </div>
     </div>
 
     <style>
         .auth-container {
-            height: 80vh;
+            min-height: calc(100vh - 80px);
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0 20px;
+            padding: 2rem;
         }
-        .actions {
+
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem !important;
             display: flex;
-            gap: 12px;
-            margin-top: 12px;
+            flex-direction: column;
+            gap: 2rem;
         }
-        h1 {
+
+        .tabs-container {
+            display: flex;
+            position: relative;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-indicator {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            height: 2px;
+            width: 50%;
+            background: var(--primary);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .auth-header {
+            text-align: center;
+        }
+
+        .auth-header h1 {
             font-size: 2rem;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            font-weight: 700;
         }
     </style>
 
     <script>
         import { showToast } from "../utils/toast.js";
 
-        const loginBtn = document.getElementById("loginBtn");
-        const registerBtn = document.getElementById("registerBtn");
+        const authForm = document.getElementById("authForm") as HTMLFormElement;
+        const tabLogin = document.getElementById("tabLogin");
+        const tabRegister = document.getElementById("tabRegister");
+        const tabIndicator = document.getElementById("tabIndicator");
+        const authTitle = document.getElementById("authTitle");
+        const authSubtitle = document.getElementById("authSubtitle");
+        const submitBtn = document.getElementById(
+            "submitBtn",
+        ) as HTMLButtonElement;
+
         const emailInput = document.getElementById("email") as HTMLInputElement;
         const passwordInput = document.getElementById(
             "password",
         ) as HTMLInputElement;
+        const firstNameInput = document.getElementById(
+            "firstName",
+        ) as HTMLInputElement;
+        const firstNameGroup = document.getElementById("firstNameGroup");
         const loader = document.getElementById("loader");
 
         const API_BASE = import.meta.env.PUBLIC_API_BASE;
+        let currentMode = "login";
 
-        loginBtn?.addEventListener("click", async () => {
+        const setMode = (mode: "login" | "register") => {
+            currentMode = mode;
+            if (mode === "login") {
+                tabLogin?.classList.add("active");
+                tabRegister?.classList.remove("active");
+                if (tabIndicator)
+                    tabIndicator.style.transform = "translateX(0%)";
+                if (authTitle) authTitle.textContent = "Bienvenido";
+                if (authSubtitle)
+                    authSubtitle.textContent =
+                        "Entrena con inteligencia artificial";
+                if (submitBtn) submitBtn.textContent = "INGRESAR AL BOX";
+                if (firstNameGroup) firstNameGroup.style.display = "none";
+            } else {
+                tabRegister?.classList.add("active");
+                tabLogin?.classList.remove("active");
+                if (tabIndicator)
+                    tabIndicator.style.transform = "translateX(100%)";
+                if (authTitle) authTitle.textContent = "Crea tu Perfil";
+                if (authSubtitle)
+                    authSubtitle.textContent = "Únete a la élite del ciclismo";
+                if (submitBtn) submitBtn.textContent = "FINALIZAR REGISTRO";
+                if (firstNameGroup) firstNameGroup.style.display = "flex";
+            }
+        };
+
+        tabLogin?.addEventListener("click", () => setMode("login"));
+        tabRegister?.addEventListener("click", () => setMode("register"));
+
+        authForm?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (currentMode === "register" && !firstNameInput.value) {
+                showToast("El nombre es requerido para el registro", "error");
+                return;
+            }
+
             loader?.classList.add("active");
+
             try {
-                const res = await fetch(`${API_BASE}/login`, {
+                const endpoint =
+                    currentMode === "login" ? "/login" : "/register";
+                const body: any = {
+                    email: emailInput.value,
+                    password: passwordInput.value,
+                };
+
+                if (currentMode === "register") {
+                    body.first_name = firstNameInput.value;
+                }
+
+                const res = await fetch(`${API_BASE}${endpoint}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        email: emailInput.value,
-                        password: passwordInput.value,
-                    }),
+                    body: JSON.stringify(body),
                 });
+
                 if (res.ok) {
-                    const { token } = await res.json();
-                    localStorage.setItem("token", token);
-                    localStorage.setItem("userEmail", emailInput.value);
-                    showToast("¡Bienvenido atleta!", "success");
-                    setTimeout(
-                        () => (window.location.href = "/dashboard"),
-                        1000,
-                    );
+                    if (currentMode === "login") {
+                        const { token } = await res.json();
+                        localStorage.setItem("token", token);
+                        localStorage.setItem("userEmail", emailInput.value);
+                        showToast("¡Bienvenido atleta!", "success");
+                        setTimeout(
+                            () => (window.location.href = "/dashboard"),
+                            1000,
+                        );
+                    } else {
+                        showToast(
+                            "¡Registro exitoso! Ya puedes ingresar",
+                            "success",
+                        );
+                        setMode("login");
+                    }
                 } else {
-                    showToast("Credenciales inválidas", "error");
+                    const errorMsg =
+                        currentMode === "login"
+                            ? "Credenciales inválidas"
+                            : "Error en el registro";
+                    showToast(errorMsg, "error");
                 }
             } catch (e) {
-                showToast("Error de conexión", "error");
-            } finally {
-                loader?.classList.remove("active");
-            }
-        });
-
-        registerBtn?.addEventListener("click", async () => {
-            loader?.classList.add("active");
-            try {
-                const res = await fetch(`${API_BASE}/register`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        email: emailInput.value,
-                        password: passwordInput.value,
-                    }),
-                });
-                if (res.ok) {
-                    showToast(
-                        "Registro exitoso! Ya puedes iniciar sesión",
-                        "success",
-                    );
-                } else {
-                    showToast("Error en el registro", "error");
-                }
-            } catch (error) {
-                showToast("Error al registrar", "error");
+                showToast("Error de conexión con el Box", "error");
             } finally {
                 loader?.classList.remove("active");
             }

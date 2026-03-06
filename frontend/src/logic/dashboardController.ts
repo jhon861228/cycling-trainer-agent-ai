@@ -12,6 +12,7 @@ export interface Workout {
     goal?: string;
     title?: string;
     created_at?: string;
+    completed?: boolean;
 }
 
 export class DashboardController {
@@ -175,7 +176,7 @@ export class DashboardController {
             const isToday = date.toDateString() === new Date().toDateString();
 
             const card = document.createElement("div");
-            card.className = `workout-card ${isToday ? "is-today" : ""}`;
+            card.className = `workout-card ${isToday ? "is-today" : ""} ${w.completed ? "completed" : ""} type-card-${w.type}`;
             card.style.minWidth = "220px";
             card.style.flex = "0 0 auto";
 
@@ -185,11 +186,24 @@ export class DashboardController {
 
             card.innerHTML = `
                 <div class="zone-ribbon ${zoneClass}"></div>
+                <div class="card-done-toggle ${w.completed ? 'active' : ''}" title="${w.completed ? 'Marcar como pendiente' : 'Marcar como hecho'}">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                </div>
                 <div class="card-date text-xs uppercase text-muted font-bold">${date.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</div>
                 <div class="card-name font-bold" style="font-size: 1.1rem; margin: 4px 0;">${w.name}</div>
                 <div class="card-meta text-mono text-sm" style="color: var(--titanium)">${w.type === "rest" ? "Descanso" : `${w.duration_minutes} min`}</div>
             `;
-            card.onclick = () => this.openWorkoutDetails(w);
+
+            // Allow clicking the card for details, but prevent propagation if toggle is clicked
+            card.onclick = (e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('.card-done-toggle')) {
+                    e.stopPropagation();
+                    this.toggleWorkoutDone(w);
+                    return;
+                }
+                this.openWorkoutDetails(w);
+            };
             this.els.workoutsGrid!.appendChild(card);
         });
 
@@ -377,7 +391,7 @@ export class DashboardController {
                 d.setDate(start.getDate() + w.day - 1);
 
                 const card = document.createElement("div");
-                card.className = "workout-card";
+                card.className = `workout-card type-card-${w.type}`;
                 card.style.minWidth = "200px";
                 card.style.flex = "0 0 auto";
 
@@ -430,6 +444,35 @@ export class DashboardController {
             }
         } finally {
             this.els.generateBtn?.removeAttribute("disabled");
+            this.els.loader?.classList.remove("active");
+        }
+    }
+
+    private async toggleWorkoutDone(workout: Workout) {
+        this.els.loader?.classList.add("active");
+        try {
+            const res = await fetch(`${API_BASE}/toggle-workout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: this.state.userEmail,
+                    plan_id: workout.plan_id,
+                    day: workout.day.toString(),
+                    completed: !workout.completed
+                })
+            });
+
+            if (res.ok) {
+                workout.completed = !workout.completed;
+                showToast(workout.completed ? "¡Entrenamiento completado!" : "Entrenamiento marcado como pendiente", "success");
+                this.renderWorkouts(this.state.activePlan);
+                this.renderHero();
+            } else {
+                showToast("Error al actualizar el estado", "error");
+            }
+        } catch (e) {
+            showToast("Error de conexión", "error");
+        } finally {
             this.els.loader?.classList.remove("active");
         }
     }

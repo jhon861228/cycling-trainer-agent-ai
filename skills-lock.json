@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "2fc21d4df4196b82c97db53412f0a9a735130048fb2178d6e3552b211f93b195"
     },
+    "golang-pro": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "709f35fe79694533e7e8f1059eecb627cced758a1e31ae2d0c0c6f4bffa91277"
+    },
     "interface-design": {
       "source": "dammyjay93/interface-design",
       "sourceType": "github",

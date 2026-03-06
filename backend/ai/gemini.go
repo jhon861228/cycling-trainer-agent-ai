@@ -2,97 +2,109 @@ package ai
 
 import (
 	"context"
+	"cycling-trainer-agent-ai/backend/models"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
-
-	"cycling-trainer-agent-ai/backend/models"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
 
-// GenerateWorkouts asks Gemini for structured workout data and returns parsed DayWorkout slices and a concise title
-func GenerateWorkouts(ctx context.Context, goal string, ftp float64, weight float64, days int, availability map[string]int) ([]models.DayWorkout, string, error) {
-	// Modo Mock para desarrollo local sin consumir cuota
+// Service defines the business logic for AI content generation
+type Service interface {
+	GenerateWorkouts(ctx context.Context, goal string, ftp float64, weight float64, days int, availability map[string]int, userName string) ([]models.DayWorkout, string, error)
+}
+
+type aiService struct {
+	apiKey string
+}
+
+// NewService creates a new AI service
+func NewService(apiKey string) Service {
+	return &aiService{
+		apiKey: apiKey,
+	}
+}
+
+func (s *aiService) GenerateWorkouts(ctx context.Context, goal string, ftp float64, weight float64, days int, availability map[string]int, userName string) ([]models.DayWorkout, string, error) {
 	if os.Getenv("MOCK_AI") == "true" {
-		fmt.Println(">> [MOCK] Generando entrenamientos simulados...")
-		workouts, title := generateMockWorkouts(ftp, days, availability)
+		log.Printf("[AI] Running in MOCK_AI mode for athlete: %s", userName)
+		workouts, title := generateMockWorkouts(ftp, days, availability, userName)
 		return workouts, title, nil
 	}
 
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
-		fmt.Println("!! GEMINI_API_KEY no está configurada")
+	if s.apiKey == "" {
+		log.Printf("[ERROR] AI generation failed: GEMINI_API_KEY is not set")
 		return nil, "", fmt.Errorf("GEMINI_API_KEY is not set")
 	}
 
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+	log.Printf("[AI] Sending generation request to Gemini for athlete: %s", userName)
+
+	client, err := genai.NewClient(ctx, option.WithAPIKey(s.apiKey))
 	if err != nil {
-		fmt.Printf("!! Error creando cliente GenAI: %v\n", err)
-		return nil, "", err
+		return nil, "", fmt.Errorf("creating GenAI client: %w", err)
 	}
 	defer client.Close()
 
-	// gemini-2.5-flash: Mejor balance calidad/costo para planes de entrenamiento
-	modelName := "gemini-2.5-flash"
-	model := client.GenerativeModel(modelName)
+	model := client.GenerativeModel("gemini-2.5-flash")
 	model.ResponseMIMEType = "application/json"
 
 	availStr, _ := json.Marshal(availability)
 
 	prompt := fmt.Sprintf(
-		"Actúa como un entrenador de ciclismo experto. Genera un plan de entrenamiento de exactamente %d días para un ciclista con un objetivo de: '%s'. "+
+		"Actúa como un entrenador de ciclismo experto. Genera un plan de entrenamiento de exactamente %d días para un ciclista llamado %s con un objetivo de: '%s'. "+
 			"Disponibilidad semanal (minutos por día): %s. "+
-			"Reglas CRÍTICAS: "+
-			"1. Genera un TÍTULO corto y motivador (máximo 5 palabras) para este objetivo. "+
-			"2. Respeta ESTRICTAMENTE la disponibilidad de tiempo. La duración total de cada día (duration_minutes) NO PUEDE superar los minutos disponibles para ese día de la semana. "+
-			"3. Si la disponibilidad es 0 o muy baja (ej: < 30min), el día debe ser 'rest'. "+
-			"4. Es CRÍTICO que el resultado sea un objeto JSON con este formato exacto: "+
-			"{ \"title\": \"Título corto\", \"workouts\": [ { \"day\": 1, \"name\": \"...\", \"type\": \"...\", \"duration_minutes\": ..., \"intervals\": [...] }, ... ] }. "+
-			"Genera EXACTAMENTE %d días en el array 'workouts', del 1 al %d consecutivo. No agrupes días ni omitas ninguno. "+
-			"El FTP del usuario es %.0f W y su peso es %.1f kg. Regresa SOLAMENTE el JSON, sin bloques de código.",
-		days, goal, string(availStr), days, days, ftp, weight,
+			"Reglas CRÍTICAS de Formato JSON: "+
+			"1. Genera un TÍTULO corto y motivador (máximo 5 palabras). "+
+			"2. El resultado DEBE ser un objeto JSON válido con este formato: "+
+			"{ \"title\": \"...\", \"workouts\": [ { \"day\": 1, \"name\": \"...\", \"type\": \"...\", \"duration_minutes\": ..., \"intervals\": [...] } ] }. "+
+			"3. IMPORTANTE: Cada elemento del array 'intervals' DEBE ser un OBJETO con estos campos: "+
+			"   - \"type\": string (\"warmup\", \"cooldown\", \"steady\", \"interval\") "+
+			"   - \"duration\": int (duración en SEGUNDOS) "+
+			"   - \"power\": float (porcentaje de FTP, ej: 0.75 para 75%%) "+
+			"   - Si el tipo es \"interval\", incluye: \"on_duration\", \"off_duration\" (segundos), \"on_power\", \"off_power\" (float) y \"repeat\" (int). "+
+			"4. Cada nombre de entrenamiento debe empezar con '%s - '. "+
+			"5. La suma de 'duration' de los intervalos debe coincidir con 'duration_minutes' (convertido a segundos). "+
+			"6. El FTP del usuario es %.0f W y su peso es %.1f kg. "+
+			"Genera EXACTAMENTE %d días. Regresa SOLAMENTE JSON puro.",
+		days, userName, goal, string(availStr), userName, ftp, weight, days,
 	)
 
-	fmt.Printf(">> Enviando petición a Gemini (Modelo: %s, Días: %d)...\n", modelName, days)
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		fmt.Printf("!! Error llamando a Gemini (%s): %v\n", modelName, err)
-		return nil, "", err
+		return nil, "", fmt.Errorf("generating content: %w", err)
 	}
 
 	if len(resp.Candidates) == 0 {
-		return nil, "", fmt.Errorf("sin respuesta de Gemini")
+		return nil, "", fmt.Errorf("no candidates in response")
 	}
 
-	responseText := ""
+	var responseText strings.Builder
 	for _, part := range resp.Candidates[0].Content.Parts {
-		responseText += fmt.Sprintf("%v", part)
+		responseText.WriteString(fmt.Sprintf("%v", part))
 	}
 
-	// Limpiar posible markdown
-	responseText = strings.TrimPrefix(responseText, "```json")
-	responseText = strings.TrimSuffix(responseText, "```")
-	responseText = strings.TrimSpace(responseText)
+	cleanJSON := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(responseText.String(), "```json"), "```"))
 
 	var aiResponse struct {
 		Title    string              `json:"title"`
 		Workouts []models.DayWorkout `json:"workouts"`
 	}
-	err = json.Unmarshal([]byte(responseText), &aiResponse)
-	if err != nil {
-		fmt.Printf("!! Error decodificando JSON de IA: %v\n", err)
-		fmt.Printf(">> Respuesta raw: %s\n", responseText)
-		return nil, "", fmt.Errorf("error parseando respuesta de IA: %v", err)
+	if err := json.Unmarshal([]byte(cleanJSON), &aiResponse); err != nil {
+		log.Printf("[ERROR] Failed to unmarshal AI response. Raw content: %s", cleanJSON)
+		return nil, "", fmt.Errorf("unmarshaling AI response: %w", err)
 	}
 
+	log.Printf("[AI] Successfully generated %d days for %s", len(aiResponse.Workouts), userName)
 	return aiResponse.Workouts, aiResponse.Title, nil
 }
 
-func generateMockWorkouts(_ float64, days int, availability map[string]int) ([]models.DayWorkout, string) {
+// ... internal mock functions remain the same but capitalized or private as per package needs ...
+func generateMockWorkouts(_ float64, days int, availability map[string]int, userName string) ([]models.DayWorkout, string) {
 	workouts := make([]models.DayWorkout, days)
 	title := "Desafío de Resistencia"
 
@@ -127,13 +139,12 @@ func generateMockWorkouts(_ float64, days int, availability map[string]int) ([]m
 		dayOfWeek := weekdays[currentDate.Weekday()]
 		maxMinutes := availability[dayOfWeek]
 		if maxMinutes == 0 && availability != nil {
-			// Si el mapa existe pero es 0, es descanso
-			workouts[i] = models.DayWorkout{Day: i + 1, Name: "Descanso", Type: "rest", Duration: 0}
+			workouts[i] = models.DayWorkout{Day: i + 1, Name: fmt.Sprintf("%s - Descanso", userName), Type: "rest", Duration: 0}
 			continue
 		}
 		if maxMinutes == 0 {
 			maxMinutes = 60
-		} // Fallback
+		}
 
 		t := types[i%len(types)]
 		duration := t.duration
@@ -143,7 +154,7 @@ func generateMockWorkouts(_ float64, days int, availability map[string]int) ([]m
 
 		workouts[i] = models.DayWorkout{
 			Day:       i + 1,
-			Name:      t.name,
+			Name:      fmt.Sprintf("%s - %s", userName, t.name),
 			Type:      t.wType,
 			Duration:  duration,
 			Intervals: t.intervals,

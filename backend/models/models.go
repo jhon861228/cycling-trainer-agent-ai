@@ -3,11 +3,12 @@ package models
 import "github.com/golang-jwt/jwt/v5"
 
 type User struct {
-	Email    string  `json:"email" dynamodbav:"PK"` // USER#email
-	SK       string  `json:"-" dynamodbav:"SK"`     // PROFILE
-	Password string  `json:"password,omitempty" dynamodbav:"password"`
-	FTP      float64 `json:"ftp" dynamodbav:"ftp"`
-	Weight   float64 `json:"weight" dynamodbav:"weight"`
+	Email     string  `json:"email" dynamodbav:"PK"` // USER#email
+	SK        string  `json:"-" dynamodbav:"SK"`     // PROFILE
+	Password  string  `json:"password,omitempty" dynamodbav:"password"`
+	FirstName string  `json:"first_name" dynamodbav:"first_name"`
+	FTP       float64 `json:"ftp" dynamodbav:"ftp"`
+	Weight    float64 `json:"weight" dynamodbav:"weight"`
 }
 
 type FTPRecord struct {
@@ -55,6 +56,7 @@ type WorkoutDay struct {
 	Intervals []Interval `json:"intervals" dynamodbav:"intervals"`
 	ZWO       string     `json:"zwo" dynamodbav:"zwo"`
 	Goal      string     `json:"goal" dynamodbav:"goal"`
+	Completed bool       `json:"completed" dynamodbav:"completed"`
 	CreatedAt string     `json:"created_at" dynamodbav:"created_at"`
 }
 
